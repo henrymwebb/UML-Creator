@@ -152,6 +152,8 @@
                 zList.push(this);
                 document.getElementById("svgCanvas").appendChild(this.svg);
 
+                this.svg.style.cursor="move";
+
                 //create the corner and side nodes, stores in this.nodes
                 this.nodes=[];
                 this.nodes.push(new Node(this.x+this.width, this.y+this.height, 0, this));//bottom right node
@@ -251,15 +253,23 @@
                 this.svg.setAttribute("zIndex", this.belongedBox.zIndex);
                 this.svg.setAttribute("nodeIndex", nodeIndex);
                 document.getElementById("svgCanvas").appendChild(this.svg);
+
+                if (nodeIndex==0){
+                    this.svg.style.cursor="nw-resize";
+                } else if (nodeIndex==1){
+                    this.svg.style.cursor="ns-resize";
+                } else if (nodeIndex==2){
+                    this.svg.style.cursor="ew-resize";
+                }
             }
 
             drag(x,y){
                 let newWidth = this.belongedBox.width;
                 let newHeight = this.belongedBox.height;
-                if (this.nodeIndex == 1 || this.nodeIndex == 0){ //if the bottom node or the bottom right node
+                if ((this.nodeIndex == 1 || this.nodeIndex == 0) && y > this.belongedBox.y+10){ //if the bottom node or the bottom right node
                     newHeight = y - this.belongedBox.y;
                 }
-                if (this.nodeIndex == 2 || this.nodeIndex == 0){ //if the right node or the bottom right node
+                if ((this.nodeIndex == 2 || this.nodeIndex == 0) && x > this.belongedBox.x+10){ //if the right node or the bottom right node
                     newWidth = x - this.belongedBox.x;
                 }
                 this.belongedBox.updateSize(newWidth, newHeight);
