@@ -1,10 +1,15 @@
 //top buttons:
-//new box:
+
+/**
+ * Creates and selects a new 50x50px box at (500,250).
+ */
 function newBox(){
     createdBox = new Box(500, 250, 50, 50);
     createdBox.select();
 }
-//remove the selected box
+/**
+ * If a box is selected, removes it.
+ */
 function removeBox(){
     //if there is no box selected
     if (selectedBox==null){
@@ -27,6 +32,9 @@ function removeBox(){
     //unselect the box
     selectedBox.unSelect();
 }
+/**
+ * If a box is selected, duplicates it and selects the new box.
+ */
 function dupeBox(){
     //if there is no box selected
     if (selectedBox==null){
@@ -38,6 +46,9 @@ function dupeBox(){
     //select new box
     boxCopy.select();
 }
+/**
+ * Clears all boxes off of the canvas.
+ */
 function clearCanvas(){
     if (window.confirm("Clear all boxes from this canvas?")){
         while(zList.length>0){
@@ -49,11 +60,17 @@ function clearCanvas(){
 
 
 
-
+/** The object that is currently grabbed and being dragged */
 let grabbedObj= null;
+/** The box that is currently selected */
 let selectedBox = null;
+/** The list of all elements ordered by order of creation */
 let zList = [];
 
+/**
+ * Grabs the object that is currently being clicked.
+ * @param {MouseEvent} event data about the event used to trigger grab()
+ */
 function grab(event){
     grabbedObj = getObj(event.target);
     //select the grabbed object
@@ -63,6 +80,10 @@ function grab(event){
     }
 }
 
+/**
+ * Lets go of the object that is currently being grabbed.
+ * @param {MouseEvent} event data about the event used to trigger unGrab()
+ */
 function unGrab(event){
     if (grabbedObj != null && grabbedObj.shadow != null){
         grabbedObj.shadow.setAttribute("visibility", "hidden");
@@ -70,6 +91,10 @@ function unGrab(event){
     grabbedObj = null;
 }
 
+/**
+ * If an object is currently being grabbed, drags it to follow the cursor.
+ * @param {MouseEvent} event data about the mouse movements
+ */
 function dragObj(event){
     if (grabbedObj == null){
         return
@@ -83,13 +108,21 @@ function dragObj(event){
     grabbedObj.drag(x,y);
 }
 
-
-
+/**
+ * Gets the mouse x, y relative to the svg canvas.
+ * @param {MouseEvent} event the event that contains the x and y information necessary to get the mouse coords
+ * @returns {Array} array containing the x and y coordinates of the mouse [x,y].
+ */
 function getMouseCoords(event){
     let CTM = event.target.getScreenCTM();
     return [(event.clientX - CTM.e)/CTM.a, (event.clientY - CTM.f)/CTM.d];
 }
 
+/**
+ * Gets the object that corresponds to the element that is the parameter.
+ * @param {Element} element The element linked to an object.
+ * @returns {Object} The box or node that corresponds to the element.
+ */
 function getObj(element){
     let obj = null;
     if(element.getAttribute("zIndex") != null){ //if the zIndex exists
@@ -103,6 +136,10 @@ function getObj(element){
     return obj;
 }
 
+/**
+ * Performs actions based on key presses
+ * @param {KeyboardEvent} event the event that triggered this function.
+ */
 function keyPressed(event){
     if (event.key === "Backspace"){
         removeBox();
@@ -111,9 +148,18 @@ function keyPressed(event){
 
 
 
-
+/**
+ * Box object, manages a box on the screen.
+ */
 class Box{
-    //create a new box given location of the top left corner, height, width
+
+    /**
+     * Create a new box with shadows and nodes
+     * @param {Number} x initial x position of the box center
+     * @param {Number} y initial y position of the box center
+     * @param {Number} width initial width of the box
+     * @param {Number} height initial height of the box
+     */
     constructor(x,y,width,height){
         this.zIndex = zList.length;
 
@@ -142,7 +188,10 @@ class Box{
         this.updateSize(width, height);
         this.drag(x, y);
     }
-    //action for when the box is selected
+
+    /**
+     * Selects the box
+     */
     select(){
         //unselect old box
         if (selectedBox != null){
@@ -158,7 +207,9 @@ class Box{
         //change selectedBox
         selectedBox = this;
     }
-    //action for when the box is unselected
+    /**
+     * Unselects the box
+     */
     unSelect(){
         //hide border
         this.svg.removeAttribute("stroke-dasharray");
@@ -170,7 +221,11 @@ class Box{
         //update selectedBox
         selectedBox = null;
     }
-    //update the position all relevant svgs
+    /**
+     * Moves the box so the center is at (x,y) according to parameters
+     * @param {Number} x x position of the center
+     * @param {Number} y y position of the center
+     */
     drag(x, y){
         //update fields
         this.x = x-(this.width/2);
@@ -188,8 +243,12 @@ class Box{
         this.nodes[0].updatePos(this.x+this.width, this.y+this.height);
         this.nodes[1].updatePos(this.x+this.width/2, this.y+this.height);
         this.nodes[2].updatePos(this.x+this.width, this.y+this.height/2);
-
     }
+    /**
+     * Updates the width and height of the box
+     * @param {Number} width width of the box
+     * @param {Number} height height of the box
+     */
     updateSize(width, height){
         //update fields
         this.height = height;
@@ -207,6 +266,10 @@ class Box{
         this.nodes[2].updatePos(this.x+this.width, this.y+this.height/2);
     }
 
+    /**
+     * Updates the z Index of the box and corresponding nodes
+     * @param {Number} zIndex new zIndex of the box
+     */
     updateZIndex(zIndex){
         this.zIndex = zIndex;
         this.svg.setAttribute("zIndex", zIndex);
@@ -216,8 +279,17 @@ class Box{
     }
 }
 
+/**
+ * Node object, manages a node on the screen. Nodes belong to objects like Boxes and Arrows.
+ */
 class Node{
-    //construct a new node using
+    /**
+     * Create and hide a new node
+     * @param {Number} x initial x position of the node
+     * @param {Number} y initial y position of the node
+     * @param {Number} nodeIndex index of the node within its superior object
+     * @param {Number} belongedBox superior object of the node
+     */
     constructor(x, y, nodeIndex, belongedBox){
 
         this.belongedBox = belongedBox;
@@ -242,6 +314,11 @@ class Node{
         }
     }
 
+    /**
+     * Drags a node based on mouse x and y, and adjusts superior object accordingly.
+     * @param {Number} x x position of mouse dragging the node
+     * @param {Number} y y position of mouse dragging the node
+     */
     drag(x,y){
         let newWidth = this.belongedBox.width;
         let newHeight = this.belongedBox.height;
@@ -253,13 +330,20 @@ class Node{
         }
         this.belongedBox.updateSize(newWidth, newHeight);
     }
+    /**
+     * Updates the x and y of the node.
+     * @param {Number} x the new x position of the node
+     * @param {Number} y the new y position of the node
+     */
     updatePos(x, y){
         this.x = x;
         this.y = y;
         this.svg.setAttribute("cx", x);
         this.svg.setAttribute("cy", y);
     }
-
+    /**
+     * Selects the superior object that the node belongs to.
+     */
     select(){
         this.belongedBox.select();
     }
